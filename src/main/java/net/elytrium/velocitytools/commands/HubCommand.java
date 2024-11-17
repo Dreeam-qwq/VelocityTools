@@ -28,7 +28,7 @@ import net.elytrium.velocitytools.Settings;
 import net.elytrium.velocitytools.VelocityTools;
 import net.kyori.adventure.text.Component;
 
-public class HubCommand implements SimpleCommand {
+public class HubCommand extends RatelimitedCommand {
 
   private final ProxyServer server;
   private final List<String> servers;
@@ -49,8 +49,7 @@ public class HubCommand implements SimpleCommand {
   }
 
   @Override
-  public void execute(SimpleCommand.Invocation invocation) {
-    CommandSource source = invocation.source();
+  protected void execute(CommandSource source, String[] args) {
     if (!(source instanceof Player player)) {
       source.sendMessage(CommandMessages.PLAYERS_ONLY);
       return;

@@ -24,6 +24,8 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.proxy.protocol.StateRegistry;
+import com.velocitypowered.proxy.util.ratelimit.Ratelimiter;
+import com.velocitypowered.proxy.util.ratelimit.Ratelimiters;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,6 +68,8 @@ public final class VelocityTools {
   private static Logger LOGGER;
   @MonotonicNonNull
   private static Serializer SERIALIZER;
+  @MonotonicNonNull
+  private static Ratelimiter RATELIMITER;
 
   private final ProxyServer server;
   private final Path dataDirectory;
@@ -117,14 +121,16 @@ public final class VelocityTools {
     HooksInitializer.init(this.server);
 
     if (Settings.IMP.MAIN.CHECK_FOR_UPDATES) {
-      if (!UpdatesChecker.checkVersionByURL("https://raw.githubusercontent.com/Elytrium/VelocityTools/master/VERSION", Settings.IMP.VERSION)) {
-        LOGGER.error("****************************************");
-        LOGGER.warn("The new VelocityTools update was found, please update.");
-        LOGGER.error("https://github.com/Elytrium/VelocityTools/releases/");
-        LOGGER.error("****************************************");
-      }
-      this.metricsFactory.make(this, 12708);
+      this.server.getScheduler().buildTask(this, () -> {
+        if (!UpdatesChecker.checkVersionByURL("https://raw.githubusercontent.com/Elytrium/VelocityTools/master/VERSION", Settings.IMP.VERSION)) {
+          LOGGER.error("****************************************");
+          LOGGER.warn("The new VelocityTools update was found, please update.");
+          LOGGER.error("https://github.com/Elytrium/VelocityTools/releases/");
+          LOGGER.error("****************************************");
+        }
+      }).schedule();
     }
+    this.metricsFactory.make(this, 12708);
   }
 
   @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH", justification = "LEGACY_AMPERSAND can't be null in velocity.")
@@ -138,6 +144,8 @@ public final class VelocityTools {
     } else {
       setSerializer(new Serializer(serializer));
     }
+
+    setRatelimiter(Ratelimiters.createWithMilliseconds(Settings.IMP.COMMANDS.RATELIMIT_DELAY));
 
     List<String> aliases = Settings.IMP.COMMANDS.HUB.ALIASES;
     aliases.forEach(alias -> this.server.getCommandManager().unregister(alias));
@@ -190,11 +198,19 @@ public final class VelocityTools {
     SERIALIZER = serializer;
   }
 
+  private static void setRatelimiter(Ratelimiter ratelimiter) {
+    RATELIMITER = ratelimiter;
+  }
+
   public static Logger getLogger() {
     return LOGGER;
   }
 
   public static Serializer getSerializer() {
     return SERIALIZER;
+  }
+
+  public static Ratelimiter getRatelimiter() {
+    return RATELIMITER;
   }
 }
