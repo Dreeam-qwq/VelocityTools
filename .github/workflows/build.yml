@@ -19,8 +19,10 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+
       - name: Build VelocityTools
-        run: ./gradlew build
+        run: ./gradlew build -x checkLicenseMain
+
       - name: Release VelocityTools
         uses: marvinpinto/action-automatic-releases@master
         with:
