@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 - 2023 Elytrium
+ * Copyright (C) 2021 - 2025 Elytrium
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,8 @@ import net.kyori.adventure.text.Component;
 
 public final class ProtocolBlockerJoinListener {
 
-  private final MethodHandle delegate;
+  private static final MethodHandle MH_delegate;
+
   private final boolean whitelist;
   private final List<Integer> protocolNumbers;
   private final List<ProtocolVersion> protocolVersions;
@@ -44,13 +45,6 @@ public final class ProtocolBlockerJoinListener {
   private final Component kickReason;
 
   public ProtocolBlockerJoinListener() {
-    try {
-      this.delegate = MethodHandles.privateLookupIn(LoginInboundConnection.class, MethodHandles.lookup())
-          .findGetter(LoginInboundConnection.class, "delegate", InitialInboundConnection.class);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException(e);
-    }
-
     this.whitelist = Settings.IMP.TOOLS.PROTOCOL_BLOCKER.WHITELIST;
     this.protocolNumbers = Settings.IMP.TOOLS.PROTOCOL_BLOCKER.PROTOCOLS;
     this.protocolVersions = Settings.IMP.TOOLS.PROTOCOL_BLOCKER.VERSIONS.stream()
@@ -64,7 +58,7 @@ public final class ProtocolBlockerJoinListener {
   @Subscribe
   public void onJoin(PreLoginEvent event) {
     try {
-      InitialInboundConnection inbound = (InitialInboundConnection) this.delegate.invoke(event.getConnection());
+      InitialInboundConnection inbound = (InitialInboundConnection) MH_delegate.invoke(event.getConnection());
 
       inbound.getConnection().eventLoop().execute(() -> {
         ProtocolVersion playerProtocol = event.getConnection().getProtocolVersion();
@@ -77,6 +71,15 @@ public final class ProtocolBlockerJoinListener {
       });
     } catch (Throwable e) {
       throw new ReflectionException(e);
+    }
+  }
+
+  static {
+    try {
+      MH_delegate = MethodHandles.privateLookupIn(LoginInboundConnection.class, MethodHandles.lookup())
+          .findGetter(LoginInboundConnection.class, "delegate", InitialInboundConnection.class);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 }

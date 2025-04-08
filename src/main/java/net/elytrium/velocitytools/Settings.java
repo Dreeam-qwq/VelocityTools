@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 - 2023 Elytrium
+ * Copyright (C) 2021 - 2025 Elytrium
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -107,7 +107,8 @@ public class Settings extends YamlSerializable {
 
     public static class SEND {
 
-      public boolean ENABLED = true;
+      @Comment(@CommentValue("Velocity already has /send command, so this one is disabled by default to not replace it."))
+      public boolean ENABLED = false;
       public String CONSOLE = "CONSOLE";
       public String NOT_ENOUGH_ARGUMENTS = "&fNot enough arguments. Usage: &6/send <server|player|all|current> <target>";
       @Comment(@CommentValue("Set to \"\" to disable."))
@@ -156,7 +157,7 @@ public class Settings extends YamlSerializable {
           @CommentValue("1.7.2, 1.7.6, 1.8, 1.9, 1.9.1, 1.9.2, 1.9.4, 1.10, 1.11, 1.11.1, 1.12, 1.12.1, 1.12.2,"),
           @CommentValue("1.13, 1.13.1, 1.13.2, 1.14, 1.14.1, 1.14.2, 1.14.3, 1.14.4, 1.15, 1.15.1, 1.15.2,"),
           @CommentValue("1.16, 1.16.1, 1.16.2, 1.16.3, 1.16.4, 1.17, 1.17.1, 1.18, 1.18.2, 1.19, 1.19.1, 1.19.3, 1.19.4,"),
-          @CommentValue("1.20, 1.20.2, 1.20.3, 1.20.5, 1.21, 1.21.2, 1.21.4, LATEST"),
+          @CommentValue("1.20, 1.20.2, 1.20.3, 1.20.5, 1.21, 1.21.2, 1.21.4, 1.21.5, LATEST"),
       })
       public List<String> VERSIONS = List.of("1.7.2");
       public String MINIMUM_VERSION = "1.7.2";
@@ -173,7 +174,7 @@ public class Settings extends YamlSerializable {
 
       public boolean REWRITE_IN_PING = true;
       public boolean REWRITE_IN_GAME = true;
-      public String PING_BRAND = "YourServer 1.12.2-1.21.4";
+      public String PING_BRAND = "YourServer 1.12.2-1.21.5";
       @Comment(@CommentValue("For ping."))
       public boolean SHOW_ALWAYS = false;
       @Comment(@CommentValue("{0} - Original server brand (e.g. Paper)."))
